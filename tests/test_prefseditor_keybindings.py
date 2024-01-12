@@ -228,6 +228,12 @@ def test_keybinding_edit_produce_expected_accels(
 
     term = terminal.Terminal()
     prefs_editor = prefseditor.PrefsEditor(term=term)
+    message_dialog = MessageDialogToken()
+
+    # Check for an active message dialog every second
+    GLib.timeout_add_seconds(
+        1, detect_close_message_dialog, prefs_editor, message_dialog
+    )
 
     widget = prefs_editor.builder.get_object("keybindingtreeview")
     treemodelfilter = widget.get_model()
