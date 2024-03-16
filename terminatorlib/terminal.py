@@ -300,6 +300,7 @@ class Terminal(Gtk.VBox):
         registry.load_plugins(force)
 
     def _add_regex(self, name, re):
+        dbg(f"adding regex: {re}")
         match = -1
         if regex.FLAGS_PCRE2:
             try:
@@ -321,21 +322,25 @@ class Terminal(Gtk.VBox):
         """Update the regexps used to match URLs"""
         userchars = "-A-Za-z0-9"
         passchars = "-A-Za-z0-9,?;.:/!%$^*&~\"#'"
-        hostchars = "-A-Za-z0-9:\[\]"
+        hostchars = r"-A-Za-z0-9:\[\]"
         pathchars = "-A-Za-z0-9_$.+!*(),;:@&=?/~#%'"
-        schemes   = "(news:|telnet:|nntp:|file:/|https?:|ftps?:|webcal:|ssh:)"
+        schemes   = "(news:|telnet:|nntp:|https?:|ftps?:|webcal:|ssh:)"
         user      = "[" + userchars + "]+(:[" + passchars + "]+)?"
         urlpath   = "/[" + pathchars + "]*[^]'.}>) \t\r\n,\\\"]"
 
         lboundry = "\\b"
         rboundry = "\\b"
 
+        re = (lboundry + "file:/" + "//?(:[0-9]+)?(" + urlpath + ")" +
+                rboundry + "/?")
+        self._add_regex('file', re)
+
         re = (lboundry + schemes +
                 "//(" + user + "@)?[" + hostchars  +".]+(:[0-9]+)?(" +
                 urlpath + ")?" + rboundry + "/?")
         self._add_regex('full_uri', re)
 
-        if self.matches['full_uri'] == -1:
+        if self.matches['full_uri'] == -1 or self.matches['file'] == -1:
             err ('Terminal::update_url_matches: Failed adding URL matches')
         else:
             re = (lboundry +
@@ -345,18 +350,18 @@ class Terminal(Gtk.VBox):
             self._add_regex('voip', re)
 
             re = (lboundry +
-                    "(www|ftp)[" + hostchars + "]*\.[" + hostchars +
+                    "(www|ftp)[" + hostchars + r"]*\.[" + hostchars +
                     ".]+(:[0-9]+)?(" + urlpath + ")?" + rboundry + "/?")
             self._add_regex('addr_only', re)
 
             re = (lboundry +
                     "(mailto:)?[a-zA-Z0-9][a-zA-Z0-9.+-]*@[a-zA-Z0-9]" +
-                            "[a-zA-Z0-9-]*\.[a-zA-Z0-9][a-zA-Z0-9-]+" +
+                            r"[a-zA-Z0-9-]*\.[a-zA-Z0-9][a-zA-Z0-9-]+" +
                             "[.a-zA-Z0-9-]*" + rboundry)
             self._add_regex('email', re)
 
             re = (lboundry +
-                  """news:[-A-Z\^_a-z{|}~!"#$%&'()*+,./0-9;:=?`]+@""" +
+                  r"""news:[-A-Z\^_a-z{|}~!"#$%&'()*+,./0-9;:=?`]+@""" +
                             "[-A-Za-z0-9.]+(:[0-9]+)?" + rboundry)
             self._add_regex('nntp', re)
 

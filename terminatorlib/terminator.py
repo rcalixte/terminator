@@ -331,7 +331,8 @@ class Terminator(Borg):
                 # For windows without a notebook ensure Terminal is visible and focused
                 if window_last_active_term_mapping[window]:
                     term = self.find_terminal_by_uuid(window_last_active_term_mapping[window].urn)
-                    term.ensure_visible_and_focussed()
+                    if term:
+                        term.ensure_visible_and_focussed()
 
         # Build list of new windows using prelayout list
         new_win_list = []
@@ -606,7 +607,7 @@ class Terminator(Borg):
     def get_focussed_terminal(self):
         """iterate over all the terminals to find which, if any, has focus"""
         for terminal in self.terminals:
-            if terminal.has_focus():
+            if terminal.get_vte().has_focus():
                 return(terminal)
         return(None)
 
